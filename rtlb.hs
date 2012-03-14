@@ -11,7 +11,7 @@ module RTLB where
 	
 import Remote
 
--- NOTE: it seems that receiveTimeout is faulty and do not reset the timer in a new iterationc
+-- NOTE: it seems that receiveTimeout is faulty and do not reset the timer in a new iterationc.
 -- next: id of the next process in the loop
 receive_send :: ProcessId -> ProcessM ()
 receive_send next = do {res <- receiveTimeout 300000 [match (\x -> return (x::Int))];
