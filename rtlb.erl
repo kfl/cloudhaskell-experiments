@@ -16,8 +16,8 @@ receive_send(Next) -> receive
     				  end.
 
 main(master) -> P = spawnN(10, self()),
-                receiveLoop(1000, 0, P).
-          
+                {Time, Res} = timer:tc(fun rtlb:receiveLoop/3, [1000, 0, P]),
+                io:fwrite("Result: ~p in ~p microseconds",[Time, Res]).
 
 spawnN(0, P) -> P;
 spawnN(N, P0) -> spawnN(N-1, spawn(fun() -> receive_send(P0) end)).
