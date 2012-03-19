@@ -26,7 +26,7 @@ $( remotable ['receive_send] )
 
 initialProcess "MASTER" = do {self <- getSelfNode;
                               selfP <- getSelfPid;
-							  pn <- spawnN 10 selfP;
+							  pn <- spawnN 10 selfP; 
 							  n <- receiveLoop 1000 0 pn;
 							  say ("Finished with n = " ++ (show n))}
 						  where
