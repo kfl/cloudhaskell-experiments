@@ -6,7 +6,7 @@
   Brian Avlund
 -}
 
-{-# LANGUAGE DeriveDataTypeable,TemplateHaskell #-}
+{-# LANGUAGE DeriveDataTypeable,TemplateHaskell, TypeSynonymInstances #-}
 module RTLB where
 	
 import Remote
@@ -45,19 +45,16 @@ ftake n fl = fl $ Just n
 -- next: id of the next process in the loop
 -- tag: temperary identifier
 receive_send :: ProcessId -> String -> ProcessM ()
-receive_send next tag = do {res <- receiveTimeout 200000 [match (\x -> return (x::Closure String))];
+receive_send next tag = do {res <- receiveTimeout 200000 [match (\x -> return (x::FList))];
                         case res of
      					   	 Nothing  -> do {selfP <- getSelfPid;
 							     			 say ((show selfP) ++ " DIED");
 							                 return ()}
-     					   	 Just ans -> do {flist <- invokeClosure ans;
-							 				 case flist of
-												 Nothing -> return ()
-												 Just fl -> do {send next ($(mkClosure 'add) tag fl);
-					                         				    receive_send next tag}}}				  
+     					   	 Just ans -> do send next (add tag ans)
+                                                                receive_send next tag}				  
 
 
-$( remotable ['receive_send, 'add] )
+$( remotable ['receive_send] )
 		
 		
 spawnN :: [NodeId] -> Int -> ProcessId -> ProcessM ProcessId			  
