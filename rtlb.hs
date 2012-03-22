@@ -6,7 +6,7 @@
   Brian Avlund
 -}
 
-{-# LANGUAGE DeriveDataTypeable,TemplateHaskell #-}
+{-# LANGUAGE DeriveDataTypeable,TemplateHaskell  #-}
 module RTLB where
 	
 import Remote
@@ -15,10 +15,11 @@ import Data.Binary (Binary,get,put,encode,decode)
 
 {- ------------------ Flist ------------------ -}
 type FList = Maybe Int -> [String]
+type List = [String]
 
-instance Binary FList where 
-                put = genericPut
-                get = genericGet
+-- instance Binary FList where 
+--                 put = genericPut
+--                 get = genericGet
 
 
 empty :: FList
@@ -40,24 +41,24 @@ toList fl = fl Nothing
 ftake :: Int -> FList -> [String]
 ftake n fl = fl $ Just n
 
+addL :: String -> List -> List
+addL x l = x : l
+
 {- ------------------ Round trip latency benchmark ------------------ -}
 -- NOTE: it seems that receiveTimeout is faulty and do not reset the timer in a new iterationc.
 -- next: id of the next process in the loop
 -- tag: temperary identifier
 receive_send :: ProcessId -> String -> ProcessM ()
-receive_send next tag = do {res <- receiveTimeout 200000 [match (\x -> return (x::Closure String))];
+receive_send next tag = do {res <- receiveTimeout 200000 [match (\x -> return (x::FList))];
                         case res of
      					   	 Nothing  -> do {selfP <- getSelfPid;
 							     			 say ((show selfP) ++ " DIED");
 							                 return ()}
-     					   	 Just ans -> do {flist <- invokeClosure ans;
-							 				 case flist of
-												 Nothing -> return ()
-												 Just fl -> do {send next ($(mkClosure 'add) tag fl);
-					                         				    receive_send next tag}}}				  
+     					   	 Just fl -> do {send next (add tag fl);
+					                        receive_send next tag}}				  
 
 
-$( remotable ['receive_send, 'add] )
+$( remotable ['receive_send] )
 		
 		
 spawnN :: [NodeId] -> Int -> ProcessId -> ProcessM ProcessId			  
@@ -78,16 +79,13 @@ initialProcess "MASTER" = do {selfP <- getSelfPid;
 							  let {workers = findPeerByRole peers "WORKER";
 							       flist = empty};
 							  pn <- spawnN workers 5 selfP;
-							  n <- receiveLoop 1 flist pn;
-							  say ("Finished with n = " ++ (show n))}
+							  fl <- receiveLoop 1 flist pn;
+							  say ("Finished with n = " ++ (show $ toList fl))}
 						  where
 							  receiveLoop 0 f _ = return f
 							  receiveLoop i f pid = do {send pid ('add "master" f);
-							   					        res <- receiveWait [match (\x -> return (x::Closure String))];
-														do {flst <- invokeClosure res;
-															case flst of
-															    Nothing -> return ()
-															    Just fl -> do {receiveLoop (i-1) fl pid}}}
+							   					        fl <- receiveWait [match (\x -> return (x::FList))];
+														receiveLoop (i-1) fl pid}
 
 -- initialProcess "WORKER" = receiveTimeout 200000  []							
 initialProcess "WORKER" = receiveWait []							

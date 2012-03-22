@@ -8,6 +8,25 @@
 
 -compile([debug_info, export_all]).
 
+%% ------------------ Flist ------------------ %%
+empty() -> fun(_) -> [] end.
+
+add(X, Fl) -> fun(Pre) ->
+			  		case Pre of
+			  			{nothing} -> [X | Fl({nothing})];
+			  			{just, N} when N > 0 -> [X | Fl({just, N-1})];
+						_ -> []
+			  		end
+			  end.
+ 
+fromList(Xs) -> lists:foldr(fun add/2, empty(), Xs).
+			  
+toList(Fl) -> Fl({nothing}).
+
+fTake(N, Fl) -> Fl({just, N}).
+
+
+%% ------------------ Round trip latency benchmark ------------------ %%
 receive_send(Next) -> receive
 					      {N} -> Next ! {N+1},
                                  receive_send(Next)
@@ -27,3 +46,4 @@ receiveLoop(I, N, Pid) -> Pid ! {N+1},
                           receive
                               {M} -> receiveLoop(I-1, M, Pid)
                           end.
+
