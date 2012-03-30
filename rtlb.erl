@@ -18,11 +18,11 @@ spawnOnNodesR([], Pid) -> Pid;
 spawnOnNodesR([N|_], P0) -> spawn(N, fun() -> receive_sendR(P0, "other") end).
 
 
-mainR(master) -> Nodes = [], % localhost is apparently not working on mac's	
-% mainR(master) -> Nodes = [node1@Avlund], % localhost is apparently not working on mac's	
-                P = spawnR(Nodes, 50, self()),
-                {Time, Res} = timer:tc(fun rtlb:receiveLoopR/3, [1, structs:emptyS(), P]),
-                io:fwrite("Result: ~p in ~p microseconds",[length(structs:toListS(Res)), Time]).
+% main() -> Nodes = [], % localhost is apparently not working on mac's	
+main() -> Nodes = [node1@Avlund], % localhost is apparently not working on mac's	
+          P = spawnR(Nodes, 50, self()),
+          {Time, Res} = timer:tc(fun rtlb:receiveLoopR/3, [1, structs:emptyS(), P]),
+          io:fwrite("Result: ~p in ~p microseconds",[length(structs:toListS(Res)), Time]).
 
 receiveLoopR(0, N, _) -> N;
 receiveLoopR(I, N, Pid) -> Pid ! N,

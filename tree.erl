@@ -13,24 +13,22 @@ spawnT(0, Self) -> {Self, Self};
 
 spawnT(S, Self) -> L = spawn(fun() -> receive_sendT(spawnT(S-1, Self), "this") end),
 			 	   R = spawn(node1@Avlund, fun() -> receive_sendT(spawnT(S-1, Self), "other") end),
+			 	   % R = spawn(fun() -> receive_sendT(spawnT(S-1, Self), "other") end),
 			       {L, R}.
 
 
 receive_sendT({Lc, Rc}, Tag) -> receive
-					       			L0 -> L1 = structs:add(Tag, L0),
+					       			L0 -> L1 = structs:addS(Tag, L0),
 					       				  Lc ! L1,
 					       				  Rc ! L1,
                            				  receive_sendT({Lc, Rc}, Tag)
-					       		after 
-					       			2000 -> ok
     				       		end.
 
 
-main(master) -> Layers = 4,
-				P = spawnT(Layers, self()),
-				io:format("~nprocesses: ~p~n", [P]),
-                {Time, Res} = timer:tc(fun rtlb:receiveLoopT/4, [1, structs:add("master", structs:empty()), P, Layers]),
-                io:fwrite("Result: ~p in ~p microseconds",[Time, length(structs:toList(Res))]).
+main() -> Layers = 14,
+		  P = spawnT(Layers, self()),
+		  {Time, Res} = timer:tc(fun tree:receiveLoopT/4, [1, structs:addS("master", structs:emptyS()), P, Layers]),
+		  io:fwrite("Result: ~p in ~p microseconds",[length(structs:toListS(Res)), Time]).
 
 
 receiveLoopT(0, List, _, _) -> List;
@@ -42,5 +40,5 @@ receiveLoopT(I, List, {Lc, Rc}, Layers) -> Lc ! List,
 
 gather_list(0, List) -> List;
 gather_list(I, List) -> receive
-                            L0 -> gather_list(I-1, structs:merge(L0, List))
+                            L0 -> gather_list(I-1, structs:mergeS(L0, List))
     				    end.

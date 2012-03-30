@@ -41,7 +41,7 @@ initialProcess "MASTER" = do {selfP <- getSelfPid;
 							  peers <- getPeers;
 							  let {workers = findPeerByRole peers "WORKER";
 							       flist = emptySi};
-							  pn <- spawnR workers 5000 selfP;
+							  pn <- spawnR workers 100000 selfP;
 							  fl <- receiveLoop 1 flist pn;
 							  say ("Finished with n = " ++ (show $ toListSi fl))}
 						  where

@@ -29,3 +29,12 @@ addS(X, Fl) -> [X | Fl].
 toListS(Fl) -> Fl.
 
 mergeS(Xs, Ys) -> lists:foldr(fun addS/2, Ys, Xs).
+
+%% ------------------ Simple int ------------------ %%
+emptySi() -> 0.
+
+addSi(X,L) -> X + L.
+
+toListSi(L) -> L.
+
+mergeSi(Xs,Ys) -> addSi(Xs,Ys).

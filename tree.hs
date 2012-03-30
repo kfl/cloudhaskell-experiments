@@ -46,7 +46,7 @@ gather_list i list = do {fl <- receiveWait [match (\x -> return (x::SList))];
 
 
 initialProcess :: String -> ProcessM ()
-initialProcess "MASTER" = do { let {layers = 4};
+initialProcess "MASTER" = do { let {layers = 10};
 							   	selfP <- getSelfPid;
 							   	peers <- getPeers;
 							    let {nodes = findPeerByRole peers "WORKER";
